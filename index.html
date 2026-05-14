@@ -127,7 +127,7 @@
                           <span>Budget DP Maksimal</span>
                           <span id="front-lead-dp-text" class="text-blue-600 font-extrabold">Tanpa DP</span>
                       </label>
-                      <input id="front-lead-dp" type="range" min="0" max="50" step="1" value="0" oninput="document.getElementById('front-lead-dp-text').innerText = this.value == 0 ? 'Tanpa DP' : 'Rp ' + this.value + ' Juta'" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                      <input id="front-lead-dp" type="range" min="0" max="50" step="1" value="0" oninput="document.getElementById('front-lead-dp-text').innerText = this.value == 0 ? 'Tanpa DP' : 'Rp. ' + this.value + ' Juta'" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                    </div>
 
                    <div>
@@ -463,17 +463,17 @@
 
                     <div>
                         <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">Harga Asli (Untuk Simulasi KPR)</label>
-                        <input id="form-price" type="text" placeholder="Cth: Rp 1.500.000.000" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
+                        <input id="form-price" type="text" placeholder="Cth: Rp. 1.500.000.000" oninput="autoFormatRupiah(this)" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">Uang Muka / DP</label>
-                            <input id="form-dp" type="text" placeholder="DP (Rp ...)" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
+                            <input id="form-dp" type="text" placeholder="Cth: Rp. 150.000.000" oninput="autoFormatRupiah(this)" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
                         </div>
                         <div>
                             <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">Biaya Terima Kunci</label>
-                            <input id="form-allincost" type="text" placeholder="Cth: Rp 25 Juta" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
+                            <input id="form-allincost" type="text" placeholder="Cth: Rp. 25.000.000" oninput="autoFormatRupiah(this)" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
                         </div>
                     </div>
 
@@ -895,7 +895,18 @@
 
         // Fungsi format angka ke Rupiah
         function formatRupiah(num) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+            let rounded = Math.round(num);
+            return 'Rp. ' + new Intl.NumberFormat('id-ID').format(rounded);
+        }
+
+        // Fungsi Auto-format Input Rupiah saat mengetik
+        function autoFormatRupiah(el) {
+            let val = el.value.replace(/[^0-9]/g, '');
+            if (!val) {
+                el.value = '';
+                return;
+            }
+            el.value = 'Rp. ' + new Intl.NumberFormat('id-ID').format(val);
         }
 
         async function initDB() {
@@ -916,9 +927,9 @@
 
                     if (!appDB.PROPERTIES || appDB.PROPERTIES.length === 0) {
                         appDB.PROPERTIES = [
-                            { id: 1, title: 'Cluster Modern Minimalis BSD', price: 'Rp 1.850.000.000', dp: 'Rp 185.000.000', allInCost: 'Rp 20.000.000', location: 'BSD City, Tangerang', type: 'Rumah', buildingType: 'Tipe 60/90', specs: 'Bata merah, atap baja ringan', promoIds: [1], image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80', images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80'] },
-                            { id: 2, title: 'Apartemen Sudirman Suites', price: 'Rp 1.500.000.000', dp: 'Rp 150.000.000', allInCost: 'Rp 35.000.000', location: 'Sudirman, Jakarta Pusat', type: 'Apartemen', buildingType: '2BR', specs: 'Full furnished, lantai granit, view city', promoIds: [], image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80', images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80'] },
-                            { id: 3, title: 'Townhouse Asri Kemang', price: 'Rp 4.500.000.000', dp: 'Rp 450.000.000', allInCost: 'Rp 50.000.000', location: 'Kemang, Jakarta Selatan', type: 'Rumah', buildingType: 'Townhouse 3 Lantai', specs: 'Bata merah ekspos, kolam renang pribadi', promoIds: [1], image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=600&q=80', images: ['https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=600&q=80'] }
+                            { id: 1, title: 'Cluster Modern Minimalis BSD', price: 'Rp. 1.850.000.000', dp: 'Rp. 185.000.000', allInCost: 'Rp. 20.000.000', location: 'BSD City, Tangerang', type: 'Rumah', buildingType: 'Tipe 60/90', specs: 'Bata merah, atap baja ringan', promoIds: [1], image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80', images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80'] },
+                            { id: 2, title: 'Apartemen Sudirman Suites', price: 'Rp. 1.500.000.000', dp: 'Rp. 150.000.000', allInCost: 'Rp. 35.000.000', location: 'Sudirman, Jakarta Pusat', type: 'Apartemen', buildingType: '2BR', specs: 'Full furnished, lantai granit, view city', promoIds: [], image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80', images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80'] },
+                            { id: 3, title: 'Townhouse Asri Kemang', price: 'Rp. 4.500.000.000', dp: 'Rp. 450.000.000', allInCost: 'Rp. 50.000.000', location: 'Kemang, Jakarta Selatan', type: 'Rumah', buildingType: 'Townhouse 3 Lantai', specs: 'Bata merah ekspos, kolam renang pribadi', promoIds: [1], image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=600&q=80', images: ['https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=600&q=80'] }
                         ];
                         isModified = true;
                     }
@@ -1325,7 +1336,7 @@
             else if (district) finalLocation = district;
 
             let dpVal = document.getElementById('front-lead-dp').value;
-            let dpText = dpVal == 0 ? 'Tanpa DP' : 'Rp ' + dpVal + ' Juta';
+            let dpText = dpVal == 0 ? 'Tanpa DP' : 'Rp. ' + dpVal + ' Juta';
             let promo = document.getElementById('front-lead-promo').value;
             let name = document.getElementById('front-lead-name').value;
             let phone = document.getElementById('front-lead-phone').value;
@@ -1427,7 +1438,7 @@
             // Data Template untuk Excel
             const data = [
                 ["Judul Properti", "Harga Asli", "DP", "Biaya Terima Kunci", "Kota/Kabupaten", "Kecamatan/Area", "Tipe Properti(Rumah/Apartemen/dll)", "Tipe Ukuran Bangunan", "Spesifikasi Material", "URL Gambar"],
-                ["Cluster Modern Indah", "Rp 1.000.000.000", "Rp 100.000.000", "Rp 25.000.000", "Tangerang", "BSD City", "Rumah", "Tipe 36/60", "Bata merah, atap baja ringan, carport 1 mobil", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80"]
+                ["Cluster Modern Indah", "Rp. 1.000.000.000", "Rp. 100.000.000", "Rp. 25.000.000", "Tangerang", "BSD City", "Rumah", "Tipe 36/60", "Bata merah, atap baja ringan, carport 1 mobil", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80"]
             ];
             
             // Konversi ke Worksheet dan simpan sebagai .xlsx
