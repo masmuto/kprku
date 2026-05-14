@@ -887,7 +887,7 @@
         // ==========================================
         
         // GANTI LINK DI BAWAH INI DENGAN LINK "WEB APP URL" DARI GOOGLE APPS SCRIPT ANDA
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbz1hQbqyq0wByMwW7QASDsakG-HGe2lR4wsrADztflTnXydoZDx3rgs-tIMevvdK3Pm/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwJJyVBZZHfYGbFl8szMazOtgfiOHPyPGLPFGHzTjxBUg3HhFprdt4H1QB4-WmOl37Crw/exec'; 
         const DB_KEY = 'PH_DB';
         let appDB = { PROPERTIES: [], VISITORS: [], AGENTS: [], PROMOS: [], USERS: [], AGENCY: {}, LOCATIONS: [] };
 
@@ -1368,7 +1368,12 @@
             let userVal = document.getElementById('login-user').value;
             let passVal = document.getElementById('login-pass').value;
             let db = getDB();
-            let user = db.USERS.find(u => u.username === userVal && u.password === passVal);
+            
+            // PERBAIKAN: Gunakan String() dan trim() untuk mencegah error tipe data (Angka vs Teks) dari Google Sheets
+            let user = db.USERS.find(u => 
+                String(u.username).trim() === String(userVal).trim() && 
+                String(u.password).trim() === String(passVal).trim()
+            );
 
             if(user) {
                 currentUser = user;
