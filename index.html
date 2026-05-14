@@ -7,12 +7,45 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tambahkan library SheetJS untuk Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style> 
         body { font-family: 'Inter', sans-serif; } 
         /* Hide scrollbar for clean horizontal scroll */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Dark Mode Overrides - Global System */
+        html.dark body { background-color: #0f172a; color: #f8fafc; }
+        html.dark #app-container { background-color: #1e293b; border-color: #334155; }
+        html.dark .bg-white { background-color: #1e293b !important; border-color: #334155 !important; color: #f8fafc !important; }
+        html.dark .bg-gray-50 { background-color: #0f172a !important; border-color: #1e293b !important; color: #f8fafc !important; }
+        html.dark .bg-gray-100 { background-color: #334155 !important; }
+        html.dark .bg-gray-200 { background-color: #0f172a !important; }
+        
+        html.dark .text-gray-900, html.dark .text-gray-800 { color: #f8fafc !important; }
+        html.dark .text-gray-700 { color: #e2e8f0 !important; }
+        html.dark .text-gray-600 { color: #cbd5e1 !important; }
+        html.dark .text-gray-500 { color: #94a3b8 !important; }
+        html.dark .text-gray-400 { color: #64748b !important; }
+        
+        html.dark .border-gray-50, html.dark .border-gray-100 { border-color: #334155 !important; }
+        html.dark .border-gray-200 { border-color: #475569 !important; }
+        html.dark input, html.dark select, html.dark textarea { color: #f8fafc !important; }
+        
+        html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-xl, html.dark .shadow-2xl { box-shadow: none !important; border: 1px solid #334155 !important; }
+        html.dark .fixed.bottom-0 { background-color: #1e293b !important; border-top-color: #334155 !important; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.5) !important; }
+        
+        /* Pastel overrides for dark mode contrast */
+        html.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1) !important; border-color: rgba(59, 130, 246, 0.2) !important; color: #93c5fd !important; }
+        html.dark .bg-orange-50 { background-color: rgba(249, 115, 22, 0.1) !important; border-color: rgba(249, 115, 22, 0.2) !important; color: #fdba74 !important; }
+        html.dark .bg-green-50 { background-color: rgba(34, 197, 94, 0.1) !important; border-color: rgba(34, 197, 94, 0.2) !important; color: #86efac !important; }
+        html.dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.1) !important; border-color: rgba(239, 68, 68, 0.2) !important; color: #fca5a5 !important; }
+        html.dark .bg-indigo-100 { background-color: rgba(99, 102, 241, 0.15) !important; color: #a5b4fc !important; }
+        html.dark .bg-teal-100 { background-color: rgba(20, 184, 166, 0.15) !important; color: #5eead4 !important; }
+
+        html.dark canvas { filter: invert(0.85) hue-rotate(180deg); }
     </style>
 </head>
 <body class="bg-gray-200 text-gray-900 flex justify-center">
@@ -35,10 +68,13 @@
                 <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" alt="Background" class="w-full h-full object-cover opacity-40" />
             </div>
             <div class="relative z-10 w-full px-5 pt-20">
-                <div class="flex items-center gap-2 mb-6">
-                    <div class="bg-blue-600 p-1.5 rounded-lg shadow-lg"><i data-lucide="home" class="h-6 w-6 text-white"></i></div>
-                    <!-- Secret Login: Klik pada Teks Logo untuk ke Admin Panel -->
-                    <span onclick="navigate('screen-admin-login')" class="font-bold text-2xl text-white drop-shadow-md cursor-pointer">Properti<span class="text-orange-400">Hub</span></span>
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-blue-600 p-1.5 rounded-lg shadow-lg"><i data-lucide="home" class="h-6 w-6 text-white"></i></div>
+                        <!-- Secret Login: Klik pada Teks Logo untuk ke Admin Panel -->
+                        <span onclick="navigate('screen-admin-login')" class="font-bold text-2xl text-white drop-shadow-md cursor-pointer">Properti<span class="text-orange-400">Hub</span></span>
+                    </div>
+                    <button onclick="toggleDarkMode()" class="bg-white/20 backdrop-blur-md p-2 rounded-full text-white shadow-sm border border-white/30 hover:bg-white/30 transition"><i data-lucide="moon" class="h-5 w-5 theme-icon"></i></button>
                 </div>
                 
                 <h1 class="text-3xl font-bold text-white mb-2 leading-tight">Mulai Perjalanan <br/>Menuju <span class="text-orange-400">Rumah Impian</span></h1>
@@ -63,11 +99,26 @@
                       </div>
                    </div>
         
-                   <div>
-                      <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">Lokasi Idaman</label>
-                      <div class="flex items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                        <i data-lucide="map-pin" class="h-5 w-5 text-gray-400 mr-3"></i>
-                        <input id="front-lead-location" type="text" placeholder="Ketik area/kota (Cth: BSD)" class="bg-transparent w-full outline-none text-sm font-medium" />
+                   <div class="grid grid-cols-2 gap-3">
+                      <div>
+                          <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">Kota / Kab</label>
+                          <div class="flex items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100 relative">
+                            <i data-lucide="map" class="h-4 w-4 text-gray-400 mr-2 flex-shrink-0"></i>
+                            <select id="front-lead-city" onchange="updateDistrictDropdown('front-lead-city', 'front-lead-district')" class="bg-transparent w-full outline-none text-sm font-medium appearance-none">
+                                <option value="">Pilih Kota</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="h-3 w-3 text-gray-400 absolute right-3"></i>
+                          </div>
+                      </div>
+                      <div>
+                          <label class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 block">Kecamatan</label>
+                          <div class="flex items-center bg-gray-50 p-3.5 rounded-xl border border-gray-100 relative">
+                            <i data-lucide="map-pin" class="h-4 w-4 text-gray-400 mr-2 flex-shrink-0"></i>
+                            <select id="front-lead-district" class="bg-transparent w-full outline-none text-sm font-medium appearance-none">
+                                <option value="">Pilih Kecamatan</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="h-3 w-3 text-gray-400 absolute right-3"></i>
+                          </div>
                       </div>
                    </div>
 
@@ -122,7 +173,10 @@
                     <!-- Secret Login: Klik pada Teks Logo untuk ke Admin Panel -->
                     <span id="front-agency-name" onclick="navigate('screen-admin-login')" class="font-bold text-xl text-white drop-shadow-md cursor-pointer">Properti<span class="text-orange-400">Hub</span></span>
                 </div>
-                <button class="bg-white/20 backdrop-blur-md p-2 rounded-full text-white shadow-sm border border-white/30"><i data-lucide="bell" class="h-5 w-5"></i></button>
+                <div class="flex gap-2">
+                    <button onclick="toggleDarkMode()" class="bg-white/20 backdrop-blur-md p-2 rounded-full text-white shadow-sm border border-white/30 hover:bg-white/30 transition"><i data-lucide="moon" class="h-5 w-5 theme-icon"></i></button>
+                    <button class="bg-white/20 backdrop-blur-md p-2 rounded-full text-white shadow-sm border border-white/30"><i data-lucide="bell" class="h-5 w-5"></i></button>
+                </div>
             </nav>
 
             <div class="relative pt-24 pb-12 flex items-center min-h-[380px] rounded-b-[2rem] overflow-hidden shadow-sm">
@@ -165,7 +219,10 @@
                 <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/60"></div>
                 <div class="absolute top-5 left-5 right-5 flex justify-between items-center z-10">
                     <button onclick="navigate('screen-front-home')" class="bg-white/20 backdrop-blur-md p-2.5 rounded-full text-white shadow-sm border border-white/30"><i data-lucide="arrow-left" class="h-6 w-6"></i></button>
-                    <button class="bg-white/20 backdrop-blur-md p-2.5 rounded-full text-white shadow-sm border border-white/30"><i data-lucide="heart" class="h-5 w-5"></i></button>
+                    <div class="flex gap-2">
+                        <button onclick="toggleDarkMode()" class="bg-white/20 backdrop-blur-md p-2.5 rounded-full text-white shadow-sm border border-white/30 hover:bg-white/30 transition"><i data-lucide="moon" class="h-5 w-5 theme-icon"></i></button>
+                        <button class="bg-white/20 backdrop-blur-md p-2.5 rounded-full text-white shadow-sm border border-white/30"><i data-lucide="heart" class="h-5 w-5"></i></button>
+                    </div>
                 </div>
             </div>
 
@@ -231,10 +288,28 @@
             </div>
         </div>
 
+        <!-- SCREEN: FRONT AGENTS -->
+        <div id="screen-front-agents" class="hidden min-h-screen bg-gray-50 pb-24">
+            <div class="bg-blue-700 px-5 pt-12 pb-6 rounded-b-3xl shadow-md text-white flex justify-between items-center">
+                <div>
+                    <h1 class="font-bold text-lg">Tim Agen Kami</h1>
+                    <p class="text-[10px] text-blue-200">Hubungi agen profesional kami untuk bantuan</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="toggleDarkMode()" class="bg-white/20 p-2 rounded-xl hover:bg-white/30 transition"><i data-lucide="moon" class="h-6 w-6 theme-icon"></i></button>
+                    <div class="bg-white/20 p-2 rounded-xl"><i data-lucide="contact" class="h-6 w-6"></i></div>
+                </div>
+            </div>
+            <div class="px-5 mt-6">
+                <div id="front-agents-container" class="flex flex-col gap-4"></div>
+            </div>
+        </div>
+
         <!-- FRONTEND BOTTOM NAV -->
         <div id="nav-front" class="fixed bottom-0 w-full max-w-[430px] bg-white border-t border-gray-100 z-40 flex justify-around items-center py-3 px-2 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
             <button onclick="navigate('screen-front-home')" class="flex flex-col items-center text-gray-400 hover:text-blue-600 w-14 nav-front-btn"><i data-lucide="home" class="h-6 w-6 mb-1"></i><span class="text-[10px] font-medium">Beranda</span></button>
             <button onclick="navigate('screen-front-search')" class="flex flex-col items-center text-gray-400 hover:text-blue-600 w-14 nav-front-btn"><i data-lucide="search" class="h-6 w-6 mb-1"></i><span class="text-[10px] font-medium">Cari</span></button>
+            <button onclick="navigate('screen-front-agents')" class="flex flex-col items-center text-gray-400 hover:text-blue-600 w-14 nav-front-btn"><i data-lucide="contact" class="h-6 w-6 mb-1"></i><span class="text-[10px] font-medium">Agen</span></button>
             <!-- Tombol Admin telah disembunyikan agar tidak terlihat pengunjung -->
         </div>
 
@@ -282,7 +357,10 @@
                     <div class="bg-white/20 p-2 rounded-xl"><i data-lucide="layout-dashboard" class="h-6 w-6"></i></div>
                     <div><h1 id="dashboard-greeting" class="font-bold text-lg leading-tight">Dashboard Admin</h1><p id="dashboard-role" class="text-[10px] text-blue-200">PropertiHub</p></div>
                 </div>
-                <button onclick="logoutAdmin()" class="p-2 bg-white/10 rounded-full hover:bg-white/20"><i data-lucide="log-out" class="h-5 w-5"></i></button>
+                <div class="flex gap-2">
+                    <button onclick="toggleDarkMode()" class="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"><i data-lucide="moon" class="h-5 w-5 theme-icon"></i></button>
+                    <button onclick="logoutAdmin()" class="p-2 bg-white/10 rounded-full hover:bg-white/20 transition"><i data-lucide="log-out" class="h-5 w-5"></i></button>
+                </div>
             </div>
 
             <div class="px-5 mt-6 grid grid-cols-2 gap-3">
@@ -336,8 +414,35 @@
             <div class="px-5 mt-6">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-gray-900">Semua Properti (<span id="admin-count-list">0</span>)</h2>
-                    <button onclick="openPropertyForm()" class="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-200"><i data-lucide="plus" class="h-4 w-4"></i> Tambah</button>
+                    <div class="flex gap-2">
+                        <button onclick="toggleBulkUpload()" class="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-200 border border-green-200"><i data-lucide="file-spreadsheet" class="h-4 w-4"></i> Massal</button>
+                        <button onclick="openPropertyForm()" class="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200"><i data-lucide="plus" class="h-4 w-4"></i> Tambah</button>
+                    </div>
                 </div>
+
+                <!-- SECTION UPLOAD MASSAL -->
+                <div id="admin-bulk-upload-section" class="hidden bg-white p-5 rounded-2xl shadow-sm border border-gray-200 mb-5 transition-all">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="file-up" class="h-5 w-5 text-green-600"></i>
+                        <h3 class="text-sm font-bold text-gray-900">Upload Properti Massal (Excel)</h3>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4 leading-relaxed">Gunakan template Excel yang disediakan. Pastikan baris pertama (header) tidak diubah.</p>
+                    
+                    <div class="flex flex-col gap-3">
+                        <button onclick="downloadBulkTemplate()" class="flex justify-center items-center gap-2 w-full bg-gray-50 text-gray-700 py-3 rounded-xl text-xs font-bold border border-gray-200 hover:bg-gray-100 transition shadow-sm">
+                            <i data-lucide="download" class="h-4 w-4"></i> Download Template Excel
+                        </button>
+                        
+                        <div class="mt-2">
+                            <input type="file" id="bulk-excel-file" accept=".xlsx, .xls" class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
+                        </div>
+                        
+                        <button onclick="handleBulkUpload()" class="flex justify-center items-center gap-2 w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700 transition mt-1">
+                            <i data-lucide="upload" class="h-4 w-4"></i> Upload & Simpan
+                        </button>
+                    </div>
+                </div>
+
                 <div id="admin-properties-container" class="flex flex-col gap-3"></div>
             </div>
         </div>
@@ -372,9 +477,25 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">Lokasi</label>
-                        <input id="form-location" type="text" placeholder="Lokasi" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">Kota / Kabupaten</label>
+                            <div class="relative">
+                                <select id="form-city" onchange="updateDistrictDropdown('form-city', 'form-district')" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium appearance-none">
+                                    <option value="">Pilih Kota</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="h-4 w-4 text-gray-400 absolute right-3 top-3.5"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">Kecamatan / Area</label>
+                            <div class="relative">
+                                <select id="form-district" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium appearance-none">
+                                    <option value="">Pilih Kecamatan</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="h-4 w-4 text-gray-400 absolute right-3 top-3.5"></i>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3">
@@ -584,6 +705,52 @@
                         </div>
                         <i data-lucide="chevron-right" class="h-4 w-4 text-gray-400"></i>
                     </button>
+                    <button onclick="navigate('screen-admin-locations')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:bg-gray-50 text-left transition-colors">
+                        <div class="bg-teal-100 p-3 rounded-full text-teal-600"><i data-lucide="map"></i></div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-sm text-gray-900">Manajemen Lokasi</h3>
+                            <p class="text-[10px] text-gray-500">Daftar Kota/Kab dan Kecamatan/Area.</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-4 w-4 text-gray-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: ADMIN LOCATIONS -->
+        <div id="screen-admin-locations" class="hidden min-h-screen pb-24">
+            <div class="bg-blue-700 px-5 pt-12 pb-6 rounded-b-3xl shadow-md text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <button onclick="navigate('screen-admin-settings')" class="p-2 bg-white/20 rounded-full hover:bg-white/30"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+                    <h1 class="font-bold text-lg">Manajemen Lokasi</h1>
+                </div>
+            </div>
+            <div class="px-5 mt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-gray-900">Semua Lokasi</h2>
+                    <button onclick="openLocationForm()" class="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-200"><i data-lucide="plus" class="h-4 w-4"></i> Tambah</button>
+                </div>
+                <div id="admin-locations-container" class="flex flex-col gap-3"></div>
+            </div>
+        </div>
+
+        <!-- SCREEN: FORM LOCATION -->
+        <div id="screen-admin-location-form" class="hidden min-h-screen pb-24 flex flex-col">
+            <div class="bg-blue-700 px-5 pt-12 pb-6 shadow-md text-white flex items-center gap-3">
+                <button onclick="navigate('screen-admin-locations')" class="p-2 bg-white/20 rounded-full hover:bg-white/30"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+                <h1 id="admin-location-form-title" class="font-bold text-lg">Tambah Lokasi</h1>
+            </div>
+            <div class="p-5 flex flex-col gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">Kota / Kabupaten</label>
+                        <input id="form-loc-city" type="text" placeholder="Cth: Tangerang" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">Kecamatan / Area <span class="font-normal">(Pisahkan dengan koma)</span></label>
+                        <textarea id="form-loc-districts" rows="4" placeholder="Cth: BSD City, Alam Sutera, Gading Serpong" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium resize-none"></textarea>
+                    </div>
+                    <button onclick="handleSaveLocation()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold mt-2 shadow-lg">Simpan Lokasi</button>
                 </div>
             </div>
         </div>
@@ -611,6 +778,10 @@
                     <div>
                         <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">URL Logo Perusahaan</label>
                         <input id="form-agency-logo" type="text" placeholder="https://..." class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 mb-1.5 block">Suku Bunga KPR Tahunan (%)</label>
+                        <input id="form-agency-kpr" type="number" step="0.1" placeholder="Cth: 5.5" class="w-full bg-gray-50 p-3 rounded-xl border border-gray-200 text-sm font-medium" />
                     </div>
                     <button onclick="handleSaveAgency()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold mt-2 shadow-lg">Simpan Profil</button>
                 </div>
@@ -671,13 +842,54 @@
     <!-- Script Logika -->
     <script>
         // ==========================================
+        // TEMA DARK MODE
+        // ==========================================
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateThemeIcons();
+        }
+
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateThemeIcons();
+        }
+
+        function updateThemeIcons() {
+            let isDark = document.documentElement.classList.contains('dark');
+            document.querySelectorAll('.theme-icon').forEach(icon => {
+                if(icon.tagName.toLowerCase() === 'svg') {
+                    // Recreate i tag if lucide already processed it
+                    let i = document.createElement('i');
+                    let classNames = icon.getAttribute('class').replace('lucide-moon', '').replace('lucide-sun', '').replace('lucide', '').trim();
+                    i.className = classNames;
+                    if(!i.classList.contains('theme-icon')) i.classList.add('theme-icon');
+                    i.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                    icon.parentNode.replaceChild(i, icon);
+                } else {
+                    icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                }
+            });
+            lucide.createIcons();
+        }
+
+        // ==========================================
         // 1. PENGATURAN DATABASE
         // ==========================================
         
         // GANTI LINK DI BAWAH INI DENGAN LINK "WEB APP URL" DARI GOOGLE APPS SCRIPT ANDA
         const GAS_URL = 'GANTI_DENGAN_URL_WEB_APP_ANDA'; 
         const DB_KEY = 'PH_DB';
-        let appDB = { PROPERTIES: [], VISITORS: [], AGENTS: [], PROMOS: [], USERS: [], AGENCY: {} };
+        let appDB = { PROPERTIES: [], VISITORS: [], AGENTS: [], PROMOS: [], USERS: [], AGENCY: {}, LOCATIONS: [] };
 
         function showLoading(show) { document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none'; }
 
@@ -695,10 +907,10 @@
                     let isModified = false;
                     
                     if (dbStr) { appDB = JSON.parse(dbStr); } 
-                    else { appDB = { PROPERTIES: [], VISITORS: [], AGENTS: [], PROMOS: [], USERS: [], AGENCY: {} }; }
+                    else { appDB = { PROPERTIES: [], VISITORS: [], AGENTS: [], PROMOS: [], USERS: [], AGENCY: {}, LOCATIONS: [] }; }
 
                     if (!appDB.AGENCY || Object.keys(appDB.AGENCY).length === 0) {
-                        appDB.AGENCY = { name: 'PropertiHub', phone: '081234567890', address: 'Jl. Sudirman No. 1, Jakarta Pusat', logo: '' };
+                        appDB.AGENCY = { name: 'PropertiHub', phone: '081234567890', address: 'Jl. Sudirman No. 1, Jakarta Pusat', logo: '', kprInterest: 5.5 };
                         isModified = true;
                     }
 
@@ -736,6 +948,15 @@
                         isModified = true;
                     }
 
+                    if (!appDB.LOCATIONS || appDB.LOCATIONS.length === 0) {
+                        appDB.LOCATIONS = [
+                            { id: 1, city: 'Tangerang', districts: ['BSD City', 'Alam Sutera', 'Gading Serpong'] },
+                            { id: 2, city: 'Jakarta Selatan', districts: ['Kemang', 'Pondok Indah', 'Senopati'] },
+                            { id: 3, city: 'Jakarta Pusat', districts: ['Sudirman', 'Menteng'] }
+                        ];
+                        isModified = true;
+                    }
+
                     if (!dbStr || isModified) localStorage.setItem(DB_KEY, JSON.stringify(appDB));
                 } else {
                     let response = await fetch(GAS_URL);
@@ -743,7 +964,7 @@
                     if(data && data.PROPERTIES) {
                         appDB = data;
                         if(!appDB.USERS) appDB.USERS = [{ id: 1, username: 'admin', password: '123', name: 'Admin', role: 'superadmin' }];
-                        if(!appDB.AGENCY) appDB.AGENCY = { name: 'PropertiHub', phone: '081234567890', address: '-', logo: '' };
+                        if(!appDB.AGENCY) appDB.AGENCY = { name: 'PropertiHub', phone: '081234567890', address: '-', logo: '', kprInterest: 5.5 };
                         localStorage.setItem(DB_KEY, JSON.stringify(appDB)); 
                     }
                 }
@@ -781,15 +1002,17 @@
         let editingAgentId = null;
         let editingPromoId = null;
         let editingUserId = null;
+        let editingLocationId = null;
         let selectedAdminPropertyId = null;
         let selectedFrontPropertyId = null;
         let chartInstance = null;
 
         const screens = [
-            'screen-front-home', 'screen-front-search', 'screen-front-detail',
+            'screen-front-home', 'screen-front-search', 'screen-front-detail', 'screen-front-agents',
             'screen-admin-login', 'screen-admin-dashboard', 'screen-admin-listing', 'screen-admin-property-form', 'screen-admin-detail',
             'screen-admin-visitors', 'screen-admin-agents', 'screen-admin-agent-form', 'screen-admin-promos', 'screen-admin-promo-form',
-            'screen-admin-settings', 'screen-admin-agency', 'screen-admin-users', 'screen-admin-user-form'
+            'screen-admin-settings', 'screen-admin-agency', 'screen-admin-users', 'screen-admin-user-form',
+            'screen-admin-locations', 'screen-admin-location-form'
         ];
         
         function navigate(targetScreen) {
@@ -824,6 +1047,8 @@
                 initFrontSearch();
             } else if (targetScreen === 'screen-front-detail') {
                 renderFrontDetail();
+            } else if (targetScreen === 'screen-front-agents') {
+                renderFrontAgents();
             } else if (targetScreen === 'screen-admin-dashboard' || targetScreen === 'screen-admin-listing') {
                 renderAdminProperties();
                 if (targetScreen === 'screen-admin-dashboard') renderDashboardChart();
@@ -837,12 +1062,15 @@
                 renderAdminUsers();
             } else if (targetScreen === 'screen-admin-agency') {
                 renderAdminAgency();
+            } else if (targetScreen === 'screen-admin-locations') {
+                renderAdminLocations();
             }
 
             // Update Active State untuk Navbar Frontend
             document.querySelectorAll('.nav-front-btn').forEach(btn => btn.classList.remove('text-blue-600'));
             if(targetScreen === 'screen-front-home') document.querySelectorAll('.nav-front-btn')[0].classList.add('text-blue-600');
             if(targetScreen === 'screen-front-search') document.querySelectorAll('.nav-front-btn')[1].classList.add('text-blue-600');
+            if(targetScreen === 'screen-front-agents') document.querySelectorAll('.nav-front-btn')[2].classList.add('text-blue-600');
             
             // Update Active State untuk Navbar Admin
             document.querySelectorAll('.nav-admin-btn').forEach(btn => btn.classList.remove('text-blue-600'));
@@ -981,15 +1209,48 @@
             lucide.createIcons();
         }
 
+        function renderFrontAgents() {
+            let db = getDB();
+            let container = document.getElementById('front-agents-container');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            if (db.AGENTS.length === 0) {
+                container.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center border"><p class="text-sm text-gray-500">Belum ada agen terdaftar.</p></div>`;
+                return;
+            }
+
+            db.AGENTS.forEach(a => {
+                let cleanPhone = a.phone.replace(/[^0-9]/g, '');
+                let waLink = `https://wa.me/${cleanPhone}?text=Halo%20${encodeURIComponent(a.name)},%20saya%20ingin%20berkonsultasi%20seputar%20properti.`;
+                container.innerHTML += `
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <img src="${a.image}" alt="${a.name}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-100 shadow-sm" />
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-900 text-sm">${a.name}</h3>
+                        <p class="text-[10px] font-bold text-blue-600 mb-2 uppercase tracking-wider">${a.role}</p>
+                        <div class="flex gap-2">
+                            <a href="${waLink}" target="_blank" class="flex-1 bg-[#25D366] text-white py-2 rounded-xl text-xs font-bold text-center shadow-md shadow-green-200 hover:bg-[#20bd5a] transition"><i data-lucide="message-circle" class="h-3 w-3 inline mr-1"></i> Chat WA</a>
+                            <a href="tel:${cleanPhone}" class="w-10 flex justify-center items-center bg-blue-50 text-blue-600 rounded-xl border border-blue-100 hover:bg-blue-100 transition"><i data-lucide="phone-call" class="h-4 w-4"></i></a>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            lucide.createIcons();
+        }
+
         // Fungsi Kalkulator KPR (Realtime On Input)
         function updateKPR() {
             let dpPercent = parseFloat(document.getElementById('kpr-dp-range').value);
             let years = parseInt(document.getElementById('kpr-year-range').value);
             let numericPrice = parseFloat(document.getElementById('kpr-base-price').value);
 
+            let db = getDB();
+            let interestRate = parseFloat(db.AGENCY?.kprInterest) || 5.5;
+
             let dp = numericPrice * (dpPercent / 100);
             let principal = numericPrice - dp;
-            let monthlyInterest = (5.5 / 100) / 12; // Asumsi Bunga 5.5% setahun
+            let monthlyInterest = (interestRate / 100) / 12; // Bunga Dinamis
             let totalMonths = years * 12;
             let monthlyPayment = principal * (monthlyInterest * Math.pow(1 + monthlyInterest, totalMonths)) / (Math.pow(1 + monthlyInterest, totalMonths) - 1);
 
@@ -1008,13 +1269,61 @@
                     promoSelect.innerHTML += `<option value="${p.title}">${p.title} (${p.badge})</option>`;
                 });
             }
+            populateLocationDropdowns('front-lead-city', 'front-lead-district');
+        }
+
+        // Fungsi Memuat Dinamis Kota dan Kecamatan
+        function populateLocationDropdowns(citySelectId, districtSelectId, selectedCity = '', selectedDistrict = '') {
+            let db = getDB();
+            let citySelect = document.getElementById(citySelectId);
+            if(!citySelect || !db.LOCATIONS) return;
+
+            citySelect.innerHTML = '<option value="">Pilih Kota/Kab</option>';
+            let cityFound = false;
+            db.LOCATIONS.forEach(loc => {
+                let isSelected = loc.city === selectedCity ? 'selected' : '';
+                if(loc.city === selectedCity) cityFound = true;
+                citySelect.innerHTML += `<option value="${loc.city}" ${isSelected}>${loc.city}</option>`;
+            });
+            if (selectedCity && !cityFound) citySelect.innerHTML += `<option value="${selectedCity}" selected>${selectedCity} (Data Lama)</option>`;
+            
+            updateDistrictDropdown(citySelectId, districtSelectId, selectedDistrict);
+        }
+
+        function updateDistrictDropdown(citySelectId, districtSelectId, selectedDistrict = '') {
+            let db = getDB();
+            let cityVal = document.getElementById(citySelectId).value;
+            let districtSelect = document.getElementById(districtSelectId);
+            if (!districtSelect) return;
+            
+            districtSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
+            let distFound = false;
+            if(cityVal) {
+                let loc = db.LOCATIONS.find(l => l.city === cityVal);
+                if(loc && loc.districts) {
+                    loc.districts.forEach(d => {
+                        let isSelected = d === selectedDistrict ? 'selected' : '';
+                        if(d === selectedDistrict) distFound = true;
+                        districtSelect.innerHTML += `<option value="${d}" ${isSelected}>${d}</option>`;
+                    });
+                }
+            }
+            if (selectedDistrict && !distFound) districtSelect.innerHTML += `<option value="${selectedDistrict}" selected>${selectedDistrict} (Data Lama)</option>`;
         }
 
         // Fungsi Submit Pencarian (Simpan Leads)
         function handleFrontSearch() {
             let type = document.getElementById('front-lead-type').value;
             let building = document.getElementById('front-lead-building').value;
-            let loc = document.getElementById('front-lead-location').value;
+            
+            // Gabungkan Kota & Kecamatan
+            let city = document.getElementById('front-lead-city').value.trim();
+            let district = document.getElementById('front-lead-district').value.trim();
+            let finalLocation = 'Bebas / Menyesuaikan';
+            if (city && district) finalLocation = `${district}, ${city}`;
+            else if (city) finalLocation = city;
+            else if (district) finalLocation = district;
+
             let dpVal = document.getElementById('front-lead-dp').value;
             let dpText = dpVal == 0 ? 'Tanpa DP' : 'Rp ' + dpVal + ' Juta';
             let promo = document.getElementById('front-lead-promo').value;
@@ -1030,7 +1339,7 @@
                 phone: phone,
                 type: type,
                 building: building || '-',
-                location: loc || 'Bebas / Menyesuaikan',
+                location: finalLocation,
                 dp: dpText,
                 promo: promo,
                 price: '-',
@@ -1043,13 +1352,13 @@
             // Clear Form
             document.getElementById('front-lead-name').value = '';
             document.getElementById('front-lead-phone').value = '';
-            document.getElementById('front-lead-location').value = '';
+            document.getElementById('front-lead-city').value = '';
+            document.getElementById('front-lead-district').value = '';
             document.getElementById('front-lead-building').value = '';
 
             alert("Pencarian berhasil! Tim kami akan segera menghubungi Anda melalui WhatsApp dengan rekomendasi terbaik.");
             navigate('screen-front-home');
         }
-
 
         // ==========================================
         // 4. LOGIKA ADMIN (DASHBOARD)
@@ -1104,6 +1413,121 @@
         function logoutAdmin() { currentUser = null; navigate('screen-admin-login'); }
 
         // --- CRUD PROPERTI ADMIN ---
+        function toggleBulkUpload() {
+            const section = document.getElementById('admin-bulk-upload-section');
+            section.classList.toggle('hidden');
+        }
+
+        function downloadBulkTemplate() {
+            // Data Template untuk Excel
+            const data = [
+                ["Judul Properti", "Harga Asli", "DP", "Biaya Terima Kunci", "Kota/Kabupaten", "Kecamatan/Area", "Tipe Properti(Rumah/Apartemen/dll)", "Tipe Ukuran Bangunan", "Spesifikasi Material", "URL Gambar"],
+                ["Cluster Modern Indah", "Rp 1.000.000.000", "Rp 100.000.000", "Rp 25.000.000", "Tangerang", "BSD City", "Rumah", "Tipe 36/60", "Bata merah, atap baja ringan, carport 1 mobil", "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80"]
+            ];
+            
+            // Konversi ke Worksheet dan simpan sebagai .xlsx
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Template_Properti");
+            XLSX.writeFile(wb, "Template_Properti_Massal.xlsx");
+        }
+
+        function handleBulkUpload() {
+            const fileInput = document.getElementById('bulk-excel-file');
+            const file = fileInput.files[0];
+            if (!file) return alert("Pilih file Excel terlebih dahulu!");
+
+            showLoading(true);
+            const reader = new FileReader();
+            
+            // Gunakan readAsArrayBuffer untuk file biner Excel
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // Ambil Sheet pertama
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Konversi Sheet ke JSON (Array of Arrays)
+                    const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                    if(rows.length < 2) {
+                        showLoading(false);
+                        return alert("File kosong atau tidak ada data yang diisi.");
+                    }
+
+                    const db = getDB();
+                    let addedCount = 0;
+
+                    // Loop data, skip baris pertama (Header)
+                    for (let i = 1; i < rows.length; i++) {
+                        const values = rows[i];
+                        
+                        // Cek apakah baris valid dan punya judul
+                        if (!values || values.length === 0 || !values[0]) continue;
+
+                        // Ambil nilai dari kolom (index 0 - 9) dengan validasi string
+                        const title = values[0] ? String(values[0]).trim() : '';
+                        const price = values[1] ? String(values[1]).trim() : '';
+                        const dp = values[2] ? String(values[2]).trim() : '';
+                        const allInCost = values[3] ? String(values[3]).trim() : '';
+                        const city = values[4] ? String(values[4]).trim() : '';
+                        const district = values[5] ? String(values[5]).trim() : '';
+                        const type = values[6] ? String(values[6]).trim() : 'Rumah';
+                        const buildingType = values[7] ? String(values[7]).trim() : '';
+                        const specs = values[8] ? String(values[8]).trim() : '-';
+                        const image = values[9] ? String(values[9]).trim() : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80';
+
+                        // Gabungkan lokasi untuk display default
+                        let finalLocation = city;
+                        if (city && district) finalLocation = `${district}, ${city}`;
+                        else if (district) finalLocation = district;
+                        if (!finalLocation) finalLocation = 'Lokasi Belum Ditentukan';
+
+                        db.PROPERTIES.unshift({
+                            id: Date.now() + i, // Hindari bentrok ID
+                            title: title,
+                            price: price,
+                            dp: dp,
+                            allInCost: allInCost,
+                            location: finalLocation,
+                            type: type,
+                            buildingType: buildingType,
+                            specs: specs,
+                            promoIds: [],
+                            image: image,
+                            images: [image]
+                        });
+                        addedCount++;
+                    }
+
+                    showLoading(false);
+                    if(addedCount > 0) {
+                        saveDB(db);
+                        alert(`Sukses! ${addedCount} properti berhasil ditambahkan secara massal.`);
+                        fileInput.value = ''; // Reset input file
+                        toggleBulkUpload(); // Tutup tab upload
+                        renderAdminProperties(); // Refresh list
+                    } else {
+                        alert("Gagal. Tidak ada baris data valid yang ditemukan pada file tersebut.");
+                    }
+                } catch(error) {
+                    showLoading(false);
+                    console.error("Excel Parsing Error:", error);
+                    alert("Terjadi kesalahan saat memproses file Excel. Pastikan format tabelnya benar.");
+                }
+            };
+            
+            reader.onerror = function() {
+                showLoading(false);
+                alert("Terjadi kesalahan saat membaca file.");
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
         function renderAdminProperties() {
             let db = getDB();
             let countDash = document.getElementById('admin-count-dash');
@@ -1165,9 +1589,11 @@
 
         function openPropertyForm() {
             editingPropertyId = null; document.getElementById('admin-form-title').innerText = 'Tambah Properti';
-            ['form-title','form-price','form-dp','form-allincost','form-location','form-type','form-building-type','form-specs'].forEach(id => document.getElementById(id).value = '');
+            ['form-title','form-price','form-dp','form-allincost','form-city','form-district','form-type','form-building-type','form-specs'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('form-image-container').innerHTML = ''; addImageInput(''); 
-            renderPromoCheckboxes([], getDB().PROMOS); navigate('screen-admin-property-form');
+            renderPromoCheckboxes([], getDB().PROMOS); 
+            populateLocationDropdowns('form-city', 'form-district');
+            navigate('screen-admin-property-form');
         }
 
         function editProperty(id) {
@@ -1177,7 +1603,15 @@
             document.getElementById('form-price').value = prop.price || '';
             document.getElementById('form-dp').value = prop.dp || '';
             document.getElementById('form-allincost').value = prop.allInCost || '';
-            document.getElementById('form-location').value = prop.location;
+            
+            // Parsing lokasi lama
+            let locParts = (prop.location || '').split(', ');
+            let district = ''; let city = '';
+            if(locParts.length > 1) { district = locParts[0]; city = locParts.slice(1).join(', '); } 
+            else { district = ''; city = prop.location || ''; }
+
+            populateLocationDropdowns('form-city', 'form-district', city, district);
+
             document.getElementById('form-type').value = prop.type;
             document.getElementById('form-building-type').value = prop.buildingType || '';
             document.getElementById('form-specs').value = prop.specs || '';
@@ -1195,9 +1629,14 @@
             if (imagesArray.length === 0) imagesArray.push('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80');
             if(!title) { alert("Judul Properti wajib diisi!"); return; }
 
+            // Gabungkan Kota & Kecamatan untuk ditampilkan
+            let city = document.getElementById('form-city').value.trim();
+            let district = document.getElementById('form-district').value.trim();
+            let finalLocation = district ? `${district}, ${city}` : city;
+
             let propData = {
                 title: title, price: document.getElementById('form-price').value, dp: document.getElementById('form-dp').value, allInCost: document.getElementById('form-allincost').value,
-                location: document.getElementById('form-location').value, type: document.getElementById('form-type').value, buildingType: document.getElementById('form-building-type').value,
+                location: finalLocation, type: document.getElementById('form-type').value, buildingType: document.getElementById('form-building-type').value,
                 specs: document.getElementById('form-specs').value, promoIds: checkedPromos, images: imagesArray, image: imagesArray[0] 
             };
 
@@ -1303,8 +1742,8 @@
             else { promoData.id = Date.now(); db.PROMOS.unshift(promoData); } saveDB(db); navigate('screen-admin-promos');
         }
 
-        function renderAdminAgency() { let db = getDB(); document.getElementById('form-agency-name').value = db.AGENCY.name || ''; document.getElementById('form-agency-phone').value = db.AGENCY.phone || ''; document.getElementById('form-agency-address').value = db.AGENCY.address || ''; document.getElementById('form-agency-logo').value = db.AGENCY.logo || ''; }
-        function handleSaveAgency() { let db = getDB(); if(!db.AGENCY) db.AGENCY = {}; db.AGENCY.name = document.getElementById('form-agency-name').value; db.AGENCY.phone = document.getElementById('form-agency-phone').value; db.AGENCY.address = document.getElementById('form-agency-address').value; db.AGENCY.logo = document.getElementById('form-agency-logo').value; saveDB(db); alert("Profil Agensi berhasil disimpan!"); navigate('screen-admin-settings'); }
+        function renderAdminAgency() { let db = getDB(); document.getElementById('form-agency-name').value = db.AGENCY.name || ''; document.getElementById('form-agency-phone').value = db.AGENCY.phone || ''; document.getElementById('form-agency-address').value = db.AGENCY.address || ''; document.getElementById('form-agency-logo').value = db.AGENCY.logo || ''; document.getElementById('form-agency-kpr').value = db.AGENCY.kprInterest || 5.5; }
+        function handleSaveAgency() { let db = getDB(); if(!db.AGENCY) db.AGENCY = {}; db.AGENCY.name = document.getElementById('form-agency-name').value; db.AGENCY.phone = document.getElementById('form-agency-phone').value; db.AGENCY.address = document.getElementById('form-agency-address').value; db.AGENCY.logo = document.getElementById('form-agency-logo').value; db.AGENCY.kprInterest = parseFloat(document.getElementById('form-agency-kpr').value) || 5.5; saveDB(db); alert("Profil Agensi berhasil disimpan!"); navigate('screen-admin-settings'); }
 
         function renderAdminUsers() {
             let db = getDB(); let c = document.getElementById('admin-users-container'); if(!c) return; c.innerHTML = '';
@@ -1325,8 +1764,41 @@
             else { userData.id = Date.now(); db.USERS.push(userData); } saveDB(db); navigate('screen-admin-users');
         }
 
+        // --- CRUD ADMIN LOCATIONS ---
+        function renderAdminLocations() {
+            let db = getDB(); let c = document.getElementById('admin-locations-container'); if(!c) return; c.innerHTML = '';
+            if (!db.LOCATIONS || db.LOCATIONS.length === 0) { c.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center border"><p class="text-sm text-gray-500">Belum ada data lokasi.</p></div>`; return; }
+
+            db.LOCATIONS.forEach(loc => {
+                let dists = (loc.districts || []).map(d => `<span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md text-[10px] whitespace-nowrap border border-gray-200">${d}</span>`).join(' ');
+                c.innerHTML += `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                    <h4 class="font-bold text-sm text-gray-900 mb-2">${loc.city}</h4>
+                    <div class="flex flex-wrap gap-1.5 mb-4">${dists || '<span class="text-[10px] text-gray-400">Belum ada kecamatan</span>'}</div>
+                    <div class="flex gap-2 pt-3 border-t border-gray-50">
+                        <button onclick="editLocation('${loc.id}')" class="flex-1 bg-gray-50 text-gray-600 py-1.5 rounded-lg text-[10px] font-bold border"><i data-lucide="edit" class="h-3 w-3 inline"></i> Edit</button>
+                        <button onclick="deleteLocation('${loc.id}')" class="flex-1 bg-red-50 text-red-600 py-1.5 rounded-lg text-[10px] font-bold border border-red-100"><i data-lucide="trash-2" class="h-3 w-3 inline"></i> Del</button>
+                    </div>
+                </div>`;
+            }); lucide.createIcons();
+        }
+
+        function openLocationForm() { editingLocationId = null; document.getElementById('admin-location-form-title').innerText = 'Tambah Lokasi'; document.getElementById('form-loc-city').value = ''; document.getElementById('form-loc-districts').value = ''; navigate('screen-admin-location-form'); }
+        function editLocation(id) { let db = getDB(); let loc = db.LOCATIONS.find(l => String(l.id) === String(id)); if(!loc) return; editingLocationId = id; document.getElementById('admin-location-form-title').innerText = 'Edit Lokasi'; document.getElementById('form-loc-city').value = loc.city; document.getElementById('form-loc-districts').value = (loc.districts || []).join(', '); navigate('screen-admin-location-form'); }
+        function deleteLocation(id) { if(confirm('Yakin ingin menghapus lokasi ini?')) { let db = getDB(); db.LOCATIONS = db.LOCATIONS.filter(l => String(l.id) !== String(id)); saveDB(db); renderAdminLocations(); } }
+        function handleSaveLocation() {
+            let db = getDB(); let city = document.getElementById('form-loc-city').value.trim(); let districtsRaw = document.getElementById('form-loc-districts').value;
+            if(!city) return alert('Kota / Kabupaten wajib diisi!');
+            let districts = districtsRaw.split(',').map(d => d.trim()).filter(d => d !== '');
+            let locData = { city: city, districts: districts };
+            if(!db.LOCATIONS) db.LOCATIONS = [];
+            if (editingLocationId) { let index = db.LOCATIONS.findIndex(l => String(l.id) === String(editingLocationId)); if(index !== -1) db.LOCATIONS[index] = { ...db.LOCATIONS[index], ...locData }; } 
+            else { locData.id = Date.now(); db.LOCATIONS.push(locData); } saveDB(db); navigate('screen-admin-locations');
+        }
+
         // Render Awal saat Web Dibuka
         window.onload = async () => { 
+            initTheme();
             await initDB(); 
             lucide.createIcons(); 
             showLoading(false);
